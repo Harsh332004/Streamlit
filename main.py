@@ -1,40 +1,46 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 
 # Streamlit UI
-st.title("Food Delivery Time Estimator")
-st.write("Enter order details to predict the expected delivery time for your meal.")
+st.title("Student Performance Predictor")
+st.write("Estimate student performance based on study habits and participation.")
 
-# Input Fields
-food_category = st.selectbox("Food Category", ["Pizza", "Burger", "Sushi", "Pasta", "Salad"])  # New categories
-customer_city = st.text_input("Customer City (e.g., New York, Mumbai)")
-delivery_mode = st.selectbox("Delivery Mode", ["Regular", "Fast", "Ultra-Fast"])  # Changed names
+# Input fields
+subject = st.selectbox("Subject", ["Math", "Science", "English", "History", "Computer Science"])
+study_hours = st.slider("Daily Study Hours", min_value=0, max_value=10, value=2)
+attendance = st.slider("Attendance (%)", min_value=0, max_value=100, value=75)
+participation = st.selectbox("Class Participation Level", ["Low", "Medium", "High"])
 
-# Rule-based model to predict delivery time
-def predict_delivery_time(food_category, delivery_mode):
-    base_time = {
-        "Pizza": 30,
-        "Burger": 20,
-        "Sushi": 40,
-        "Pasta": 25,
-        "Salad": 15
-    }
-    delivery_modifier = {"Regular": 0, "Fast": -5, "Ultra-Fast": -10}
+# Rule-based prediction
+def predict_performance(hours, attendance, participation_level):
+    score = hours * 2 + (attendance / 10)
     
-    return max(5, base_time.get(food_category, 25) + delivery_modifier.get(delivery_mode, 0))
+    if participation_level == "Medium":
+        score += 5
+    elif participation_level == "High":
+        score += 10
 
-if st.button("Predict Delivery Time"):
-    prediction = predict_delivery_time(food_category, delivery_mode)
-    st.success(f"Estimated Delivery Time: {prediction} minutes")
+    if score >= 25:
+        return "Excellent"
+    elif score >= 15:
+        return "Average"
+    else:
+        return "Poor"
 
-# Delivery Time Chart
-st.write("## Delivery Time Comparison Chart")
-delivery_times = {
-    category: [predict_delivery_time(category, mode) for mode in ["Regular", "Fast", "Ultra-Fast"]]
-    for category in ["Pizza", "Burger", "Sushi", "Pasta", "Salad"]
-}
-df_chart = pd.DataFrame(delivery_times, index=["Regular", "Fast", "Ultra-Fast"])
+if st.button("Predict Performance"):
+    result = predict_performance(study_hours, attendance, participation)
+    st.success(f"Predicted Performance: {result}")
 
-st.line_chart(df_chart)
+# Chart: Score estimate across subjects
+st.write("## Subject-wise Score Estimate Chart")
+subjects = ["Math", "Science", "English", "History", "Computer Science"]
+scores = [
+    predict_performance(study_hours, attendance, participation) for _ in subjects
+]
+
+# Convert performance to numerical scores for plotting
+performance_map = {"Poor": 1, "Average": 2, "Excellent": 3}
+scores_numeric = [performance_map.get(p, 0) for p in scores]
+df_chart = pd.DataFrame({'Performance Score': scores_numeric}, index=subjects)
+
+st.bar_chart(df_chart)
